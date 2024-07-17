@@ -4,6 +4,7 @@
 	screenPosition dw 2000d
 	old_screenPosition dw 2000d
 	pointPoistion dw 0d
+	letter_offset db 0
 .code
 main proc
     mov ax, @data
@@ -65,23 +66,55 @@ get_key proc
     ret
 ;TODO: EDGES
 move_up:
-    sub screenPosition, 160
+	push di
+	push ax
+	mov di, -160
+    add screenPosition, di
+	mov ax, es:[screenPosition]
+	cmp ax, 0000h
+	jnz inc_offset
 	call Erase_old_position
+	pop ax
+	pop di
     ret
 
 move_down:
-    add screenPosition, 160
+	push di
+	push ax
+	mov di, 160
+    add screenPosition, di
+	mov ax, es:[screenPosition]
+	cmp ax, 0000h
+	jnz inc_offset
 	call Erase_old_position
+	pop ax
+	pop di
     ret
 
 move_left:
-    sub screenPosition, 2
+	push di
+	push ax
+	mov di, -2
+    add screenPosition, di
+	mov ax, es:[screenPosition]
+	cmp ax, 0000h
+	jnz inc_offset
 	call Erase_old_position
+	pop ax
+	pop di
     ret
 
 move_right:
-    add screenPosition,2
+	push di
+	push ax
+	mov di, 2
+    add screenPosition, di
+	mov ax, es:[screenPosition]
+	cmp ax, 0000h
+	jnz inc_offset
 	call Erase_old_position
+	pop ax
+	pop di
     ret
 get_key endp
 
@@ -133,6 +166,7 @@ pointMaker proc
 	
 	valid_position:
 	mov al, 'A'
+	add al, letter_offset
 	mov ah, 4
 	mov es:[di],ax
 
@@ -159,6 +193,11 @@ get_time endp
 
 
 exit_program:
+	mov al, '0'
+	add al, letter_offset ; make sure the score displays correctly
+	mov ah, 07h ; set the text color to gray
+	mov si, 3200; select the bottom of the screen
+	mov es:[si], ax
     ; Exit to DOS
 	in al, 21h
 	and al, 0FDh
@@ -166,6 +205,14 @@ exit_program:
 	
     mov ax, 4C00h
     int 21h
+
+inc_offset:
+	push ax
+	mov al, letter_offset
+	add ax, 1
+	mov letter_offset, al
+	pop ax
+	ret
 
 main endp
 end main
